@@ -1,3 +1,5 @@
+#include "pybind11/detail/common.h"
+#include <climits>
 #include <cstdint>
 #include <stdexcept>
 #include <cmath>
@@ -12,7 +14,7 @@ class int8{
   public:
     explicit int8(int8_t val) : value(val){}
     std::string repr() const { return std::to_string(value); }
-    std::string nbit() const { return std::to_string(32); }
+    std::string nbits() const { return std::to_string(32); }
     int getValue() const { return static_cast<int>(value); }
     
     int8 operator+(const int8 &other) const { return int8(value + other.value); }
@@ -59,7 +61,7 @@ class int16{
   public:
     explicit int16(int16_t val) : value(val){}
     std::string repr() const { return std::to_string(value); }
-    std::string nbit() const { return std::to_string(value); }
+    std::string nbits() const { return std::to_string(value); }
     int getValue() const { return static_cast<int>(value); }
     
     int16 operator+(const int16 &other) const { return int16(value + other.value); }
@@ -106,7 +108,7 @@ class int32{
   public:
     explicit int32(int32_t val) : value(val){}
     std::string repr() const { return std::to_string(value); }
-    std::string nbit() const { return std::to_string(value); }
+    std::string nbits() const { return std::to_string(value); }
     int32_t getValue() const { return value; }
 
     int32 operator+(const int32 &other) const { return int32(value + other.value); }
@@ -154,7 +156,7 @@ class int64{
   public:
     explicit int64(int64_t val) : value(val){}
     std::string repr() const { return std::to_string(value); }
-    std::string nbit() const { return std::to_string(value); }
+    std::string nbits() const { return std::to_string(value); }
     int64_t getValue() const { return value; }
 
     int64 operator+(const int64 &other) const { return int64(value + other.value); }
@@ -202,7 +204,7 @@ class float32{
   public:
     explicit float32(float val) : value(val){}
     std::string repr() const { return std::to_string(value); }
-    std::string nbit() const { return std::to_string(value); }
+    std::string nbits() const { return std::to_string(value); }
     explicit float32(int16_t val) : value(static_cast<float>(val)){}
     explicit float32(int32_t val) : value(static_cast<float>(val)){}
     explicit float32(int64_t val) : value(static_cast<float>(val)){}
@@ -245,7 +247,7 @@ class float64{
   public:
     explicit float64(double val) : value(val){}
     std::string repr() const { return std::to_string(value); }
-    std::string nbit() const { return std::to_string(value); }
+    std::string nbits() const { return std::to_string(value); }
     explicit float64(int16_t val) : value(static_cast<double>(val)){}
     explicit float64(int32_t val) : value(static_cast<double>(val)){}
     explicit float64(int64_t val) : value(static_cast<double>(val)){}
@@ -283,6 +285,63 @@ class float64{
     bool operator<=(const float64 &other) const { return value <= other.value; }
 };
 
+
+// functions for int8 with builtin dtypes
+int64 operator+(const int8 &x, const long &y){ return int64(static_cast<long>(x.getValue()) + y); }
+int64 operator-(const int8 &x, const long &y){ return int64(static_cast<long>(x.getValue()) - y); }
+int64 operator*(const int8 &x, const long &y){ return int64(static_cast<long>(x.getValue()) * y); }
+int64 operator/(const int8 &x, const long &y){
+  if(y == 0) throw std::runtime_error("ZeroDivisionError");
+  return int64(static_cast<long>(x.getValue()) / y);
+}
+int64 floordiv(const int8 &x, const long &y){
+  if(y == 0) throw std::runtime_error("ZeroDivisionError");
+  return int64(static_cast<long>(x.getValue()) / y);
+}
+int64 operator%(const int8 &x, const long &y){
+  if(y == 0) throw std::runtime_error("ZeroDivisionError");
+  return int64(static_cast<long>(x.getValue()) % y);
+}
+int64 power(const int8 &x, const long &y){
+  if(y < 0) throw std::runtime_error("NegativeExponentError");
+  long res = 1;
+  for(long i = 0; i < y; ++i){ res *= static_cast<long>(x.getValue()); }
+  return int64(res);
+}
+bool operator==(const int8 &x, const long &y){ return static_cast<long>(x.getValue()) == y; }
+bool operator!=(const int8 &x, const long &y){ return static_cast<long>(x.getValue()) != y; }
+bool operator>(const int8 &x, const long &y){ return static_cast<long>(x.getValue()) > y; }
+bool operator>=(const int8 &x, const long &y){ return static_cast<long>(x.getValue()) >= y; }
+bool operator<(const int8 &x, const long &y){ return static_cast<long>(x.getValue()) < y; }
+bool operator<=(const int8 &x, const long &y){ return static_cast<long>(x.getValue()) <= y; }
+
+float64 operator+(const int8 &x, const double &y){ return float64(static_cast<double>(x.getValue()) + y); }
+float64 operator-(const int8 &x, const double &y){ return float64(static_cast<double>(x.getValue()) - y); }
+float64 operator*(const int8 &x, const double &y){ return float64(static_cast<double>(x.getValue()) * y); }
+float64 operator/(const int8 &x, const double &y){
+  if(y == 0) throw std::runtime_error("ZeroDivisionError");
+  return float64(static_cast<double>(x.getValue()) / y);
+}
+float64 floordiv(const int8 &x, const double &y){
+  if(y == 0) throw std::runtime_error("ZeroDivisionError");
+  return float64(static_cast<double>(x.getValue()) / y);
+}
+float64 operator%(const int8 &x, const double &y){
+  if(y == 0) throw std::runtime_error("ZeroDivisionError");
+  return float64(fmod(static_cast<double>(x.getValue()),y));
+}
+float64 power(const int8 &x, const double &y){
+  if(y < 0) throw std::runtime_error("NegativeExponentError");
+  double res = 1;
+  for(double i = 0; i < y; ++i){ res *= static_cast<double>(x.getValue()); }
+  return float64(res);
+}
+bool operator==(const int8 &x, const double &y){ return static_cast<double>(x.getValue()) == y; }
+bool operator!=(const int8 &x, const double &y){ return static_cast<double>(x.getValue()) != y; }
+bool operator>(const int8 &x, const double &y){ return static_cast<double>(x.getValue()) > y; }
+bool operator>=(const int8 &x, const double &y){ return static_cast<double>(x.getValue()) >= y; }
+bool operator<(const int8 &x, const double &y){ return static_cast<double>(x.getValue()) < y; }
+bool operator<=(const int8 &x, const double &y){ return static_cast<double>(x.getValue()) <= y; }
 
 // function for int8 with int16
 int16 operator+(const int8 &x, const int16 &y){ return int16(static_cast<int16_t>(x.getValue()) + y.getValue()); }
@@ -422,49 +481,208 @@ bool operator>=(const int8 &x, const float64 &y){ return static_cast<double>(x.g
 bool operator<(const int8 &x, const float64 &y){ return static_cast<double>(x.getValue()) < y.getValue(); }
 bool operator<=(const int8 &x, const float64 &y){ return static_cast<double>(x.getValue()) <= y.getValue(); }
 
+// functions for int16 with int8
+int16 operator+(const int16 &x, const int8 &y){ return int16(x.getValue() + static_cast<int16_t>(y.getValue())); }
+int16 operator-(const int16 &x, const int8 &y){ return int16(x.getValue() - static_cast<int16_t>(y.getValue())); }
+int16 operator*(const int16 &x, const int8 &y){ return int16(x.getValue() * static_cast<int16_t>(y.getValue())); }
+int16 operator/(const int16 &x, const int8 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int16(x.getValue() / static_cast<int16_t>(y.getValue()));
+}
+int16 floordiv(const int16 &x, const int8 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int16(x.getValue() / static_cast<int16_t>(y.getValue()));
+}
+int16 operator%(const int16 &x, const int8 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int16(x.getValue() / static_cast<int16_t>(y.getValue()));
+}
+int16 power(const int16 &x, const int8 &y){
+  if(y.getValue() < 0) throw std::runtime_error("NegativeExponentError");
+  int16_t res = 1;
+  for(int8_t i = 0; i < y.getValue(); ++i){ res *= x.getValue(); }
+  return int16(res);
+}
+bool operator==(const int16 &x, const int8 &y){ return x.getValue() == static_cast<int16_t>(y.getValue()); }
+bool operator!=(const int16 &x, const int8 &y){ return x.getValue() != static_cast<int16_t>(y.getValue()); }
+bool operator>(const int16 &x, const int8 &y){ return x.getValue() > static_cast<int16_t>(y.getValue()); }
+bool operator>=(const int16 &x, const int8 &y){ return x.getValue() >= static_cast<int16_t>(y.getValue()); }
+bool operator<(const int16 &x, const int8 &y){ return x.getValue() < static_cast<int16_t>(y.getValue()); }
+bool operator<=(const int16 &x, const int8 &y){ return x.getValue() <= static_cast<int16_t>(y.getValue()); }
+
+// functions for int16 with int32
+int32 operator+(const int16 &x, const int32 &y){ return int32(static_cast<int32_t>(x.getValue()) + y.getValue()); }
+int32 operator-(const int16 &x, const int32 &y){ return int32(static_cast<int32_t>(x.getValue()) - y.getValue()); }
+int32 operator*(const int16 &x, const int32 &y){ return int32(static_cast<int32_t>(x.getValue()) * y.getValue()); }
+int32 operator/(const int16 &x, const int32 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int32(static_cast<int32_t>(x.getValue()) / y.getValue());
+}
+int32 floordiv(const int16 &x, const int32 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int32(static_cast<int32_t>(x.getValue()) / y.getValue());
+}
+int32 operator%(const int16 &x, const int32 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int32(static_cast<int32_t>(x.getValue()) / y.getValue());
+}
+int32 power(const int16 &x, const int32 &y){
+  if(y.getValue() < 0) throw std::runtime_error("NegativeExponentError");
+  int32_t res = 1;
+  for(int32_t i = 0; i < y.getValue(); ++i){ res *= x.getValue(); }
+  return int32(res);
+}
+bool operator==(const int16 &x, const int32 &y){ return static_cast<int32_t>(x.getValue()) == y.getValue(); }
+bool operator!=(const int16 &x, const int32 &y){ return static_cast<int32_t>(x.getValue()) != y.getValue(); }
+bool operator>(const int16 &x, const int32 &y){ return static_cast<int32_t>(x.getValue()) > y.getValue(); }
+bool operator>=(const int16 &x, const int32 &y){ return static_cast<int32_t>(x.getValue()) >= y.getValue(); }
+bool operator<(const int16 &x, const int32 &y){ return static_cast<int32_t>(x.getValue()) < y.getValue(); }
+bool operator<=(const int16 &x, const int32 &y){ return static_cast<int32_t>(x.getValue()) <= y.getValue(); }
+
+
+// functions for int16 with int64
+int64 operator+(const int16 &x, const int64 &y){ return int64(static_cast<int64_t>(x.getValue()) + y.getValue()); }
+int64 operator-(const int16 &x, const int64 &y){ return int64(static_cast<int64_t>(x.getValue()) - y.getValue()); }
+int64 operator*(const int16 &x, const int64 &y){ return int64(static_cast<int64_t>(x.getValue()) * y.getValue()); }
+int64 operator/(const int16 &x, const int64 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int64(static_cast<int64_t>(x.getValue()) / y.getValue());
+}
+int64 floordiv(const int16 &x, const int64 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int64(static_cast<int64_t>(x.getValue()) / y.getValue());
+}
+int64 operator%(const int16 &x, const int64 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return int64(static_cast<int64_t>(x.getValue()) % y.getValue());
+}
+int64 power(const int16 &x, const int64 &y){
+  if(y.getValue() < 0) throw std::runtime_error("NegativeExponentError");
+  int64_t res = 1;
+  for(int64_t i = 0; i < y.getValue(); ++i){ res *= static_cast<int64_t>(x.getValue()); }
+  return int64(res);
+}
+bool operator==(const int16 &x, const int64 &y){ return static_cast<int64_t>(x.getValue()) == y.getValue(); }
+bool operator!=(const int16 &x, const int64 &y){ return static_cast<int64_t>(x.getValue()) != y.getValue(); }
+bool operator>(const int16 &x, const int64 &y){ return static_cast<int64_t>(x.getValue()) > y.getValue(); }
+bool operator>=(const int16 &x, const int64 &y){ return static_cast<int64_t>(x.getValue()) >= y.getValue(); }
+bool operator<(const int16 &x, const int64 &y){ return static_cast<int64_t>(x.getValue()) < y.getValue(); }
+bool operator<=(const int16 &x, const int64 &y){ return static_cast<int64_t>(x.getValue()) <= y.getValue(); }
+
+// functions for int16 with float32
+float32 operator+(const int16 &x, const float32 &y){ return float32(static_cast<float>(x.getValue()) + y.getValue()); }
+float32 operator-(const int16 &x, const float32 &y){ return float32(static_cast<float>(x.getValue()) - y.getValue()); }
+float32 operator*(const int16 &x, const float32 &y){ return float32(static_cast<float>(x.getValue()) * y.getValue()); }
+float32 operator/(const int16 &x, const float32 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return float32(static_cast<float>(x.getValue()) / y.getValue());
+}
+float32 floordiv(const int16 &x, const float32 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return float32(std::floor(static_cast<float>(x.getValue()) / y.getValue()));
+}
+float32 operator%(const int16 &x, const float32 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return float32(std::fmod(static_cast<float>(x.getValue()),y.getValue()));
+}
+float32 power(const int16 &x, const float32 &y){
+  if(y.getValue() < 0) throw std::runtime_error("NegativeExponentError");
+  return float32(std::pow(static_cast<float>(x.getValue()),y.getValue()));
+}
+bool operator==(const int16 &x, const float32 &y){ return static_cast<float>(x.getValue()) == y.getValue(); }
+bool operator!=(const int16 &x, const float32 &y){ return static_cast<float>(x.getValue()) != y.getValue(); }
+bool operator>(const int16 &x, const float32 &y){ return static_cast<float>(x.getValue()) > y.getValue(); }
+bool operator>=(const int16 &x, const float32 &y){ return static_cast<float>(x.getValue()) >= y.getValue(); }
+bool operator<(const int16 &x, const float32 &y){ return static_cast<float>(x.getValue()) < y.getValue(); }
+bool operator<=(const int16 &x, const float32 &y){ return static_cast<float>(x.getValue()) <= y.getValue(); }
+
+// functions for int16 with float64
+float64 operator+(const int16 &x, const float64 &y){ return float64(static_cast<double>(x.getValue()) + y.getValue()); }
+float64 operator-(const int16 &x, const float64 &y){ return float64(static_cast<double>(x.getValue()) - y.getValue()); }
+float64 operator*(const int16 &x, const float64 &y){ return float64(static_cast<double>(x.getValue()) * y.getValue()); }
+float64 operator/(const int16 &x, const float64 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return float64(static_cast<float>(x.getValue()) / y.getValue());
+}
+float64 floordiv(const int16 &x, const float64 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return float64(std::floor(static_cast<double>(x.getValue()) / y.getValue()));
+}
+float64 operator%(const int16 &x, const float64 &y){
+  if(y.getValue() == 0) throw std::runtime_error("ZeroDivisionError");
+  return float64(std::fmod(static_cast<double>(x.getValue()),y.getValue()));
+}
+float64 power(const int16 &x, const float64 &y){
+  if(y.getValue() < 0) throw std::runtime_error("NegativeExponentError");
+  return float64(std::pow(static_cast<double>(x.getValue()),y.getValue()));
+}
+bool operator==(const int16 &x, const float64 &y){ return static_cast<double>(x.getValue()) == y.getValue(); }
+bool operator!=(const int16 &x, const float64 &y){ return static_cast<double>(x.getValue()) != y.getValue(); }
+bool operator>(const int16 &x, const float64 &y){ return static_cast<double>(x.getValue()) > y.getValue(); }
+bool operator>=(const int16 &x, const float64 &y){ return static_cast<double>(x.getValue()) >= y.getValue(); }
+bool operator<(const int16 &x, const float64 &y){ return static_cast<double>(x.getValue()) < y.getValue(); }
+bool operator<=(const int16 &x, const float64 &y){ return static_cast<double>(x.getValue()) <= y.getValue(); }
+
+
+
 
 PYBIND11_MODULE(dtypes, m) {
   pybind11::class_<int8>(m, "int8")
     .def(pybind11::init<int8_t>())
     .def("__repr__", &int8::repr)
+    .def_property_readonly("nbits", &int8::nbits)
     .def("getValue", &int8::getValue)
     .def("__add__", &int8::operator+)
+    .def("__add__", pybind11::overload_cast<const int8&, const long&>(&operator+))
+    .def("__add__", pybind11::overload_cast<const int8&, const double&>(&operator+))
     .def("__add__", pybind11::overload_cast<const int8&, const int16&>(&operator+))
     .def("__add__", pybind11::overload_cast<const int8&, const int32&>(&operator+))
     .def("__add__", pybind11::overload_cast<const int8&, const int64&>(&operator+))
     .def("__add__", pybind11::overload_cast<const int8&, const float32&>(&operator+))
     .def("__add__", pybind11::overload_cast<const int8&, const float64&>(&operator+))
     .def("__sub__", &int8::operator-)
+    .def("__sub__", pybind11::overload_cast<const int8&, const long&>(&operator-))
+    .def("__sub__", pybind11::overload_cast<const int8&, const double&>(&operator-))
     .def("__sub__", pybind11::overload_cast<const int8&, const int16&>(&operator-))
     .def("__sub__", pybind11::overload_cast<const int8&, const int32&>(&operator-))
     .def("__sub__", pybind11::overload_cast<const int8&, const int64&>(&operator-))
     .def("__sub__", pybind11::overload_cast<const int8&, const float32&>(&operator-))
     .def("__sub__", pybind11::overload_cast<const int8&, const float64&>(&operator-))
     .def("__mul__", &int8::operator*)
+    .def("__mul__", pybind11::overload_cast<const int8&, const long&>(&operator*))
+    .def("__mul__", pybind11::overload_cast<const int8&, const double&>(&operator*))
     .def("__mul__", pybind11::overload_cast<const int8&, const int16&>(&operator*))
     .def("__mul__", pybind11::overload_cast<const int8&, const int32&>(&operator*))
     .def("__mul__", pybind11::overload_cast<const int8&, const int64&>(&operator*))
     .def("__mul__", pybind11::overload_cast<const int8&, const float32&>(&operator*))
     .def("__mul__", pybind11::overload_cast<const int8&, const float64&>(&operator*))
     .def("__truediv__", &int8::operator/)
+    .def("__truediv__", pybind11::overload_cast<const int8&, const long&>(&operator/))
+    .def("__truediv__", pybind11::overload_cast<const int8&, const double&>(&operator/))
     .def("__truediv__", pybind11::overload_cast<const int8&, const int16&>(&operator/))
     .def("__truediv__", pybind11::overload_cast<const int8&, const int32&>(&operator/))
     .def("__truediv__", pybind11::overload_cast<const int8&, const int64&>(&operator/))
     .def("__truediv__", pybind11::overload_cast<const int8&, const float32&>(&operator/))
     .def("__truediv__", pybind11::overload_cast<const int8&, const float64&>(&operator/))
     .def("__mod__", &int8::operator%)
+    .def("__mod__", pybind11::overload_cast<const int8&, const long&>(&operator%))
+    .def("__mod__", pybind11::overload_cast<const int8&, const double&>(&operator%))
     .def("__mod__", pybind11::overload_cast<const int8&, const int16&>(&operator%))
     .def("__mod__", pybind11::overload_cast<const int8&, const int32&>(&operator%))
     .def("__mod__", pybind11::overload_cast<const int8&, const int64&>(&operator%))
     .def("__mod__", pybind11::overload_cast<const int8&, const float32&>(&operator%))
     .def("__mod__", pybind11::overload_cast<const int8&, const float64&>(&operator%))
     .def("__floordiv__", &int8::floordiv)
+    .def("__floordiv__", pybind11::overload_cast<const int8&, const long&>(&floordiv))
+    .def("__floordiv__", pybind11::overload_cast<const int8&, const double&>(&floordiv))
     .def("__floordiv__", pybind11::overload_cast<const int8&, const int16&>(&floordiv))
     .def("__floordiv__", pybind11::overload_cast<const int8&, const int32&>(&floordiv))
     .def("__floordiv__", pybind11::overload_cast<const int8&, const int64&>(&floordiv))
     .def("__floordiv__", pybind11::overload_cast<const int8&, const float32&>(&floordiv))
     .def("__floordiv__", pybind11::overload_cast<const int8&, const float64&>(&floordiv))
     .def("__pow__", &int8::power)
+    .def("__pow__", pybind11::overload_cast<const int8&, const long&>(&power))
+    .def("__pow__", pybind11::overload_cast<const int8&, const double&>(&power))
     .def("__pow__", pybind11::overload_cast<const int8&, const int16&>(&power))
     .def("__pow__", pybind11::overload_cast<const int8&, const int32&>(&power))
     .def("__pow__", pybind11::overload_cast<const int8&, const int64&>(&power))
@@ -474,36 +692,48 @@ PYBIND11_MODULE(dtypes, m) {
     .def("__neg__", &int8::neg)
     .def("__pos__", &int8::pos)
     .def("__eq__", &int8::operator==)
+    .def("__eq__", pybind11::overload_cast<const int8&, const long&>(&operator==))
+    .def("__eq__", pybind11::overload_cast<const int8&, const double&>(&operator==))
     .def("__eq__", pybind11::overload_cast<const int8&, const int16&>(&operator==))
     .def("__eq__", pybind11::overload_cast<const int8&, const int32&>(&operator==))
     .def("__eq__", pybind11::overload_cast<const int8&, const int64&>(&operator==))
     .def("__eq__", pybind11::overload_cast<const int8&, const float32&>(&operator==))
     .def("__eq__", pybind11::overload_cast<const int8&, const float64&>(&operator==))
     .def("__ne__", &int8::operator!=)
+    .def("__ne__", pybind11::overload_cast<const int8&, const long&>(&operator!=))
+    .def("__ne__", pybind11::overload_cast<const int8&, const double&>(&operator!=))
     .def("__ne__", pybind11::overload_cast<const int8&, const int16&>(&operator!=))
     .def("__ne__", pybind11::overload_cast<const int8&, const int32&>(&operator!=))
     .def("__ne__", pybind11::overload_cast<const int8&, const int64&>(&operator!=))
     .def("__ne__", pybind11::overload_cast<const int8&, const float32&>(&operator!=))
     .def("__ne__", pybind11::overload_cast<const int8&, const float64&>(&operator!=))
     .def("__lt__", &int8::operator<)
+    .def("__lt__",pybind11::overload_cast<const int8&, const long&>(&operator<))
+    .def("__lt__",pybind11::overload_cast<const int8&, const double&>(&operator<))
     .def("__lt__", pybind11::overload_cast<const int8&, const int16&>(&operator<))
     .def("__lt__", pybind11::overload_cast<const int8&, const int32&>(&operator<))
     .def("__lt__", pybind11::overload_cast<const int8&, const int64&>(&operator<))
     .def("__lt__", pybind11::overload_cast<const int8&, const float32&>(&operator<))
     .def("__lt__", pybind11::overload_cast<const int8&, const float64&>(&operator<))
     .def("__le__", &int8::operator<=)
+    .def("__le__", pybind11::overload_cast<const int8&, const long&>(&operator<=))
+    .def("__le__", pybind11::overload_cast<const int8&, const double&>(&operator<=))
     .def("__le__", pybind11::overload_cast<const int8&, const int16&>(&operator<=))
     .def("__le__", pybind11::overload_cast<const int8&, const int32&>(&operator<=))
     .def("__le__", pybind11::overload_cast<const int8&, const int64&>(&operator<=))
     .def("__le__", pybind11::overload_cast<const int8&, const float32&>(&operator<=))
     .def("__le__", pybind11::overload_cast<const int8&, const float64&>(&operator<=))
     .def("__gt__", &int8::operator>)
+    .def("__gt__", pybind11::overload_cast<const int8&, const long&>(&operator>))
+    .def("__gt__", pybind11::overload_cast<const int8&, const double&>(&operator>))
     .def("__gt__", pybind11::overload_cast<const int8&, const int16&>(&operator>))
     .def("__gt__", pybind11::overload_cast<const int8&, const int32&>(&operator>))
     .def("__gt__", pybind11::overload_cast<const int8&, const int64&>(&operator>))
     .def("__gt__", pybind11::overload_cast<const int8&, const float32&>(&operator>))
     .def("__gt__", pybind11::overload_cast<const int8&, const float64&>(&operator>))
     .def("__ge__", &int8::operator>=)
+    .def("__ge__", pybind11::overload_cast<const int8&, const long&>(&operator>=))
+    .def("__ge__", pybind11::overload_cast<const int8&, const double&>(&operator>=))
     .def("__ge__", pybind11::overload_cast<const int8&, const int16&>(&operator>=))
     .def("__ge__", pybind11::overload_cast<const int8&, const int32&>(&operator>=))
     .def("__ge__", pybind11::overload_cast<const int8&, const int64&>(&operator>=))
@@ -513,23 +743,89 @@ PYBIND11_MODULE(dtypes, m) {
   pybind11::class_<int16>(m, "int16")
     .def(pybind11::init<int16_t>())
     .def("__repr__", &int16::repr)
+    .def_property_readonly("nbits", &int16::nbits)
     .def("getValue", &int16::getValue)
     .def("__add__", &int16::operator+)
+    .def("__add__", pybind11::overload_cast<const int16&, const int8&>(&operator+))
+    .def("__add__", pybind11::overload_cast<const int16&, const int32&>(&operator+))
+    .def("__add__", pybind11::overload_cast<const int16&, const int64&>(&operator+))
+    .def("__add__", pybind11::overload_cast<const int16&, const float32&>(&operator+))
+    .def("__add__", pybind11::overload_cast<const int16&, const float64&>(&operator+))
     .def("__sub__", &int16::operator-)
+    .def("__sub__", pybind11::overload_cast<const int16&, const int8&>(&operator-))
+    .def("__sub__", pybind11::overload_cast<const int16&, const int32&>(&operator-))
+    .def("__sub__", pybind11::overload_cast<const int16&, const int64&>(&operator-))
+    .def("__sub__", pybind11::overload_cast<const int16&, const float32&>(&operator-))
+    .def("__sub__", pybind11::overload_cast<const int16&, const float64&>(&operator-))
     .def("__mul__", &int16::operator*)
+    .def("__mul__", pybind11::overload_cast<const int16&, const int8&>(&operator*))
+    .def("__mul__", pybind11::overload_cast<const int16&, const int8&>(&operator*))
+    .def("__mul__", pybind11::overload_cast<const int16&, const int8&>(&operator*))
+    .def("__mul__", pybind11::overload_cast<const int16&, const int8&>(&operator*))
+    .def("__mul__", pybind11::overload_cast<const int16&, const int8&>(&operator*))
     .def("__truediv__", &int16::operator/)
+    .def("__truediv__", pybind11::overload_cast<const int16&, const int8&>(&operator/))
+    .def("__truediv__", pybind11::overload_cast<const int16&, const int32&>(&operator/))
+    .def("__truediv__", pybind11::overload_cast<const int16&, const int64&>(&operator/))
+    .def("__truediv__", pybind11::overload_cast<const int16&, const float32&>(&operator/))
+    .def("__truediv__", pybind11::overload_cast<const int16&, const float64&>(&operator/))
     .def("__mod__", &int16::operator%)
+    .def("__mod__", pybind11::overload_cast<const int16&, const int8&>(&operator%))
+    .def("__mod__", pybind11::overload_cast<const int16&, const int32&>(&operator%))
+    .def("__mod__", pybind11::overload_cast<const int16&, const int64&>(&operator%))
+    .def("__mod__", pybind11::overload_cast<const int16&, const float32&>(&operator%))
+    .def("__mod__", pybind11::overload_cast<const int16&, const float64&>(&operator%))
     .def("__floordiv__", &int16::floordiv)
+    .def("__floordiv__", pybind11::overload_cast<const int16&, const int8&>(&floordiv))
+    .def("__floordiv__", pybind11::overload_cast<const int16&, const int32&>(&floordiv))
+    .def("__floordiv__", pybind11::overload_cast<const int16&, const int64&>(&floordiv))
+    .def("__floordiv__", pybind11::overload_cast<const int16&, const float32&>(&floordiv))
+    .def("__floordiv__", pybind11::overload_cast<const int16&, const float64&>(&floordiv))
     .def("__pow__", &int16::power)
+    .def("__pow__", pybind11::overload_cast<const int16&, const int8&>(&power))
+    .def("__pow__", pybind11::overload_cast<const int16&, const int32&>(&power))
+    .def("__pow__", pybind11::overload_cast<const int16&, const int64&>(&power))
+    .def("__pow__", pybind11::overload_cast<const int16&, const float64&>(&power))
+    .def("__pow__", pybind11::overload_cast<const int16&, const float32&>(&power))
     .def("__abs__", &int16::abs)
     .def("__neg__", &int16::neg)
     .def("__pos__", &int16::pos)
     .def("__eq__", &int16::operator==)
+    .def("__eq__", pybind11::overload_cast<const int16&, const int8&>(&operator==))
+    .def("__eq__", pybind11::overload_cast<const int16&, const int32&>(&operator==))
+    .def("__eq__", pybind11::overload_cast<const int16&, const int64&>(&operator==))
+    .def("__eq__", pybind11::overload_cast<const int16&, const float32&>(&operator==))
+    .def("__eq__", pybind11::overload_cast<const int16&, const float64&>(&operator==))
     .def("__ne__", &int16::operator!=)
+    .def("__ne__", pybind11::overload_cast<const int16&, const int8&>(&operator!=))
+    .def("__ne__", pybind11::overload_cast<const int16&, const int32&>(&operator!=))
+    .def("__ne__", pybind11::overload_cast<const int16&, const int64&>(&operator!=))
+    .def("__ne__", pybind11::overload_cast<const int16&, const float32&>(&operator!=))
+    .def("__ne__", pybind11::overload_cast<const int16&, const float64&>(&operator!=))
     .def("__lt__", &int16::operator<)
+    .def("__lt__", pybind11::overload_cast<const int16&, const int8&>(&operator<))
+    .def("__lt__", pybind11::overload_cast<const int16&, const int32&>(&operator<))
+    .def("__lt__", pybind11::overload_cast<const int16&, const int64&>(&operator<))
+    .def("__lt__", pybind11::overload_cast<const int16&, const float32&>(&operator<))
+    .def("__lt__", pybind11::overload_cast<const int16&, const float64&>(&operator<))
     .def("__le__", &int16::operator<=)
+    .def("__le__", pybind11::overload_cast<const int16&, const int8&>(&operator<=))
+    .def("__le__", pybind11::overload_cast<const int16&, const int32&>(&operator<=))
+    .def("__le__", pybind11::overload_cast<const int16&, const int64&>(&operator<=))
+    .def("__le__", pybind11::overload_cast<const int16&, const float32&>(&operator<=))
+    .def("__le__", pybind11::overload_cast<const int16&, const float64&>(&operator<=))
     .def("__gt__", &int16::operator>)
-    .def("__ge__", &int16::operator>=);
+    .def("__gt__", pybind11::overload_cast<const int16&, const int8&>(&operator>))
+    .def("__gt__", pybind11::overload_cast<const int16&, const int32&>(&operator>))
+    .def("__gt__", pybind11::overload_cast<const int16&, const int64&>(&operator>))
+    .def("__gt__", pybind11::overload_cast<const int16&, const float32&>(&operator>))
+    .def("__gt__", pybind11::overload_cast<const int16&, const float64&>(&operator>))
+    .def("__ge__", &int16::operator>=)
+    .def("__ge__", pybind11::overload_cast<const int16&, const int8&>(&operator>=))
+    .def("__ge__", pybind11::overload_cast<const int16&, const int32&>(&operator>=))
+    .def("__ge__", pybind11::overload_cast<const int16&, const int64&>(&operator>=))
+    .def("__ge__", pybind11::overload_cast<const int16&, const float32&>(&operator>=))
+    .def("__ge__", pybind11::overload_cast<const int16&, const float64&>(&operator>=));
 
   pybind11::class_<int32>(m, "int32")
     .def(pybind11::init<int32_t>())
